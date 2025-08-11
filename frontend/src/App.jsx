@@ -13,12 +13,10 @@ import UserProfile from './pages/UserProfile';
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [page, setPage] = useState(token ? 'list' : 'landing');
-  const [editingNoteId, setEditingNoteId] = useState(null); // Cambiado de noteId a editingNoteId
+  const [editingNoteId, setEditingNoteId] = useState(null);
 
-  // Validar token al inicio y cuando cambia
   useEffect(() => {
     if (token) {
-      // Verifica que el token sea válido (opcional: revisa expiración JWT)
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.exp && Date.now() / 1000 > payload.exp) {
@@ -33,7 +31,6 @@ function App() {
         setPage('landing');
         return;
       }
-      // Prueba el token contra el backend
       axios.get('http://localhost:3001/api/notes', {
         headers: { Authorization: token }
       }).catch(() => {
@@ -44,7 +41,6 @@ function App() {
     }
   }, [token]);
 
-  // Guardar token en localStorage
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
@@ -59,7 +55,6 @@ function App() {
     setPage('landing');
   };
 
-  // Renderizado de páginas
   if (page === 'landing') {
     return (
       <div>
@@ -72,14 +67,7 @@ function App() {
     return (
       <div>
         {token && (
-          <div style={{
-            background: '#f5f5f5',
-            padding: '0.5em 1em',
-            borderBottom: '1px solid #eee',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '1em'
-          }}>
+          <div className="app-bar">
             <button className="secondary" onClick={logout}>Cerrar sesión</button>
           </div>
         )}
@@ -89,13 +77,11 @@ function App() {
   }
 
   if (!token) {
-    // Si no hay token, muestra login o registro
     return page === 'register'
       ? <Register setPage={setPage} />
       : <Login setToken={setToken} setPage={setPage} />;
   }
 
-  // Si hay token, fuerza la página 'list' si está en login o register
   if (page === 'login' || page === 'register') {
     setPage('list');
     return null;
@@ -103,15 +89,7 @@ function App() {
 
   return (
     <div>
-      {/* Barra superior de logout */}
-      <div style={{
-        background: '#f5f5f5',
-        padding: '0.5em 1em',
-        borderBottom: '1px solid #eee',
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: '1em'
-      }}>
+      <div className="app-bar">
         <button className="secondary" onClick={logout}>Cerrar sesión</button>
       </div>
 
@@ -119,7 +97,7 @@ function App() {
         <NotesList
           token={token}
           setPage={setPage}
-          setEditingNoteId={setEditingNoteId} // Cambiado de setNoteId a setEditingNoteId
+          setEditingNoteId={setEditingNoteId}
         />
       )}
 
@@ -133,16 +111,16 @@ function App() {
       {page === 'view' && (
         <NoteView
           token={token}
-          noteId={editingNoteId} // Usando editingNoteId
+          noteId={editingNoteId}
           setPage={setPage}
-          setNoteId={setEditingNoteId} // Usando setEditingNoteId
+          setNoteId={setEditingNoteId}
         />
       )}
 
       {page === 'edit' && (
         <NoteEdit
           token={token}
-          noteId={editingNoteId} // Usando editingNoteId
+          noteId={editingNoteId}
           setPage={setPage}
         />
       )}

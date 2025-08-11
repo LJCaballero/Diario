@@ -27,13 +27,13 @@ El backend correrá en [http://localhost:3001](http://localhost:3001)
 
 ## ¿Qué endpoints hay?
 
-- `/api/register` — Crea un usuario nuevo.
-- `/api/login` — Devuelve un token JWT.
-- `/api/notes` — CRUD de notas (privadas y públicas).
-- `/api/categories` — CRUD de categorías.
-- `/api/public` — Consulta de notas públicas.
-- `/api/comments` — Comentar en notas públicas.
-- `/api/user` — Perfil y alias del usuario.
+- POST`/api/register` — Crea un usuario nuevo.
+- POST`/api/login` — Devuelve un token JWT.
+- GET, POST, PUT, PATCH, DELETE`/api/notes` — CRUD de notas (privadas y públicas).
+- GET, POST, PUT, PATCH, DELETE`/api/categories` — CRUD de categorías.
+- GET`/api/public` — Consulta de notas públicas.
+- POST`/api/comments` — Comentar en notas públicas.
+- GET, PATCH`/api/user` — Perfil y alias del usuario.
 
 Todos los endpoints privados requieren el header:  
 Authorization:

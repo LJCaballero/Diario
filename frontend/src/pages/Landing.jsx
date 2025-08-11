@@ -1,8 +1,8 @@
 export default function Landing({ setPage }) {
   return (
-    <div className="container" style={{alignItems: 'center', textAlign: 'center'}}>
+    <div className="container centered">
       <h2>📝 Notas Abiertas</h2>
-      <p style={{lineHeight: '1.6', marginBottom: '2em'}}>
+      <p className="lead">
         Bienvenido a <b>Notas Abiertas</b>, el lugar donde puedes guardar tus notas personales y compartir ideas con el mundo.
         <br /><br />
         <b>¿Qué puedes hacer aquí?</b><br />
@@ -15,7 +15,7 @@ export default function Landing({ setPage }) {
         <b>¡Empieza ahora!</b>
       </p>
       <button onClick={() => setPage('publicwall')}>🌍 Ver Notas Públicas</button>
-      <button className="secondary" style={{marginTop: '1em'}} onClick={() => setPage('login')}>🔐 Iniciar sesión / Registrarse</button>
+      <button className="secondary mt-1" onClick={() => setPage('login')}>🔐 Iniciar sesión / Registrarse</button>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from '../axiosInstance';
 
 export default function PublicWall({ setPage, token }) {
@@ -9,6 +9,8 @@ export default function PublicWall({ setPage, token }) {
   const [selectedNote, setSelectedNote] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const typingTimer = useRef(null);
+
   const fetchNotes = async () => {
     setLoading(true);
     try {
@@ -16,11 +18,12 @@ export default function PublicWall({ setPage, token }) {
       if (author) params.author = author;
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
+
       const config = { params };
       if (token) config.headers = { Authorization: token };
       const res = await axios.get('http://localhost:3001/api/public', config);
       setNotes(res.data);
-    } catch (err) {
+    } catch {
       setNotes([]);
     }
     setLoading(false);
@@ -30,6 +33,16 @@ export default function PublicWall({ setPage, token }) {
     fetchNotes();
     // eslint-disable-next-line
   }, []);
+
+  // Búsqueda "en vivo" con debounce mientras el usuario escribe en author
+  useEffect(() => {
+    if (typingTimer.current) clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => {
+      fetchNotes();
+    }, 350);
+    return () => clearTimeout(typingTimer.current);
+    // eslint-disable-next-line
+  }, [author]);
 
   const handleFilter = (e) => {
     e.preventDefault();
@@ -43,7 +56,6 @@ export default function PublicWall({ setPage, token }) {
     fetchNotes();
   };
 
-  // Like/dislike handlers
   const handleRate = async (noteId, rating) => {
     if (!token) return;
     try {
@@ -53,7 +65,7 @@ export default function PublicWall({ setPage, token }) {
         { headers: { Authorization: token } }
       );
       fetchNotes();
-    } catch (err) {}
+    } catch {}
   };
 
   const handleUnrate = async (noteId) => {
@@ -64,7 +76,7 @@ export default function PublicWall({ setPage, token }) {
         { headers: { Authorization: token } }
       );
       fetchNotes();
-    } catch (err) {}
+    } catch {}
   };
 
   if (selectedNote) {
@@ -85,12 +97,13 @@ export default function PublicWall({ setPage, token }) {
         <button className="secondary" onClick={() => setPage('landing')}>🏠 Volver al inicio</button>
       </div>
 
-      <form onSubmit={handleFilter} style={{marginBottom: '1.5em', display: 'flex', gap: '1em', flexWrap: 'wrap'}}>
+      <form onSubmit={handleFilter} className="toolbar mb-1-5 wrap">
         <input
           type="text"
           placeholder="Filtrar por autor o aka"
           value={author}
           onChange={e => setAuthor(e.target.value)}
+          className="grow search-input"
         />
         <input
           type="date"
@@ -111,34 +124,24 @@ export default function PublicWall({ setPage, token }) {
       <ul>
         {notes.length === 0 && !loading && (
           <li>
-            <div style={{padding: '2em', textAlign: 'center', color: '#666'}}>
-              No hay notas públicas que coincidan con el filtro.
-            </div>
+            <div className="empty">No hay notas públicas que coincidan con el filtro.</div>
           </li>
         )}
         {notes.map(note => (
-          <li key={note.id} style={{borderBottom: '1px solid #eee', padding: '0.7em 0'}}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '1em'}}>
+          <li key={note.id} className="list-row">
+            <div className="row gap-1">
               <button
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  textAlign: 'left',
-                  width: '100%',
-                  cursor: 'pointer',
-                  padding: 0
-                }}
+                className="list-btn"
                 onClick={() => setSelectedNote(note.id)}
               >
-                <div style={{fontWeight: 'bold', fontSize: '1.1em'}}>{note.title}</div>
-                <div style={{fontSize: '0.95em', color: '#555'}}>
+                <div className="note-title">• {note.title}</div>
+                <div className="meta">
                   <span>Autor: <strong>{note.display_author}</strong></span> |{' '}
                   <span>Categoría: {note.category_name}</span> |{' '}
                   <span>Fecha: {note.created_at ? new Date(note.created_at).toLocaleDateString() : 'N/A'}</span>
                 </div>
               </button>
-              {/* Like/Dislike */}
-              <div style={{display: 'flex', alignItems: 'center', gap: '0.3em', minWidth: 80}}>
+              <div className="rate-box">
                 <LikeDislike
                   note={note}
                   token={token}
@@ -155,12 +158,10 @@ export default function PublicWall({ setPage, token }) {
   );
 }
 
-// Componente para ver el detalle de una nota pública
 function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Comentarios
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
@@ -201,7 +202,6 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
     // eslint-disable-next-line
   }, [noteId]);
 
-  // Like/dislike handlers
   const handleRate = async (rating) => {
     if (!token) return;
     try {
@@ -211,7 +211,7 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
         { headers: { Authorization: token } }
       );
       fetchNote();
-    } catch (err) {}
+    } catch {}
   };
 
   const handleUnrate = async () => {
@@ -222,10 +222,9 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
         { headers: { Authorization: token } }
       );
       fetchNote();
-    } catch (err) {}
+    } catch {}
   };
 
-  // Añadir comentario
   const handleAddComment = async (e) => {
     e.preventDefault();
     setCommentError('');
@@ -253,14 +252,11 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
       setCommentSuccess('Comentario publicado');
       fetchComments();
     } catch (err) {
-      setCommentError(
-        err?.response?.data?.error || 'Error al publicar el comentario'
-      );
+      setCommentError(err?.response?.data?.error || 'Error al publicar el comentario');
     }
     setCommentLoading(false);
   };
 
-  // Borrar comentario
   const handleDeleteComment = async (commentId) => {
     if (!token) return;
     if (!window.confirm('¿Seguro que quieres borrar este comentario?')) return;
@@ -275,9 +271,7 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
       setCommentSuccess('Comentario eliminado');
       fetchComments();
     } catch (err) {
-      setCommentError(
-        err?.response?.data?.error || 'Error al eliminar el comentario'
-      );
+      setCommentError(err?.response?.data?.error || 'Error al eliminar el comentario');
     }
     setCommentLoading(false);
   };
@@ -296,11 +290,11 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
         <p><strong>Categoría:</strong> {note.category_name}</p>
         <p><strong>Fecha de publicación:</strong> {note.created_at ? new Date(note.created_at).toLocaleString() : 'N/A'}</p>
         {note.image_url && (
-          <div style={{margin: '1em 0'}}>
-            <img src={`http://localhost:3001${note.image_url}`} alt="Nota" style={{maxWidth: '100%', borderRadius: '8px'}} />
+          <div className="my-1">
+            <img src={`http://localhost:3001${note.image_url}`} alt="Nota" />
           </div>
         )}
-        <div style={{margin: '1em 0'}}>
+        <div className="my-1">
           <LikeDislike
             note={note}
             token={token}
@@ -311,15 +305,14 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
           />
         </div>
         <hr />
-        <div style={{whiteSpace: 'pre-wrap', fontSize: '1.1em'}}>{note.text}</div>
+        <div className="content-prewrap text-lg">{note.text}</div>
         <hr />
-        {/* COMENTARIOS */}
-        <div style={{marginTop: '2em'}}>
-          <h3 style={{marginBottom: '0.5em'}}>💬 Comentarios</h3>
+        <div className="mt-2">
+          <h3 className="mb-0-5">💬 Comentarios</h3>
           {commentLoading && <div>Cargando comentarios...</div>}
-          {commentError && <div style={{color: 'red', marginBottom: 8}}>{commentError}</div>}
-          {commentSuccess && <div style={{color: 'green', marginBottom: 8}}>{commentSuccess}</div>}
-          <form onSubmit={handleAddComment} style={{display: 'flex', gap: 8, marginBottom: 16}}>
+          {commentError && <div className="error">{commentError}</div>}
+          {commentSuccess && <div className="success">{commentSuccess}</div>}
+          <form onSubmit={handleAddComment} className="toolbar mb-1">
             <input
               type="text"
               placeholder={token ? "Escribe un comentario..." : "Inicia sesión para comentar"}
@@ -327,37 +320,29 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
               onChange={e => setCommentText(e.target.value)}
               disabled={!token || commentLoading}
               maxLength={1000}
-              style={{flex: 1}}
+              className="grow"
             />
             <button type="submit" disabled={!token || commentLoading || !commentText.trim()}>
               Comentar
             </button>
           </form>
-          <ul style={{listStyle: 'none', padding: 0}}>
+          <ul className="no-bullets">
             {comments.length === 0 && !commentLoading && (
-              <li style={{color: '#888', fontStyle: 'italic'}}>No hay comentarios aún.</li>
+              <li className="muted italic">No hay comentarios aún.</li>
             )}
             {comments.map(comment => (
-              <li key={comment.id} style={{
-                borderBottom: '1px solid #eee',
-                padding: '0.5em 0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
+              <li key={comment.id} className="comment-row">
                 <div>
-                  <span style={{fontWeight: 500}}>{comment.display_author}</span>
-                  <span style={{color: '#888', fontSize: '0.9em', marginLeft: 8}}>
+                  <span className="fw-500">{comment.display_author}</span>
+                  <span className="muted small ml-0-5">
                     {new Date(comment.created_at).toLocaleString()}
                   </span>
-                  <div style={{marginTop: 2, whiteSpace: 'pre-wrap'}}>{comment.text}</div>
+                  <div className="content-prewrap mt-0-2">{comment.text}</div>
                 </div>
                 {token && comment.user_id && note && note.user_rating !== undefined && (
-                  // Solo el autor puede borrar su comentario
                   (token && comment.user_id === getUserIdFromToken(token)) && (
                     <button
-                      className="secondary"
-                      style={{marginLeft: 12, fontSize: '0.9em'}}
+                      className="secondary btn-compact"
                       onClick={() => handleDeleteComment(comment.id)}
                       disabled={commentLoading}
                     >
@@ -374,7 +359,6 @@ function PublicNoteDetail({ noteId, setSelectedNote, setPage, token }) {
   );
 }
 
-// Extrae el user_id del token JWT (sin validación de firma, solo para frontend)
 function getUserIdFromToken(token) {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -384,45 +368,30 @@ function getUserIdFromToken(token) {
   }
 }
 
-// Componente Like/Dislike reutilizable
 function LikeDislike({ note, token, onLike, onDislike, onUnrate, big }) {
   const userRating = note.user_rating;
-  const size = big ? '1.7em' : '1.2em';
+  const sizeClass = big ? 'icon-lg' : 'icon-md';
 
   return (
-    <div style={{display: 'flex', alignItems: 'center', gap: '0.5em'}}>
+    <div className="rate actions">
       <button
         title="Me gusta"
-        style={{
-          background: 'none',
-          border: 'none',
-          color: userRating === 1 ? '#1976d2' : '#888',
-          fontSize: size,
-          cursor: token ? 'pointer' : 'not-allowed',
-          padding: 0
-        }}
+        className={`icon-button ${sizeClass} ${userRating === 1 ? 'liked' : ''}`}
         disabled={!token}
         onClick={() => userRating === 1 ? onUnrate() : onLike()}
       >
         👍
       </button>
-      <span style={{minWidth: 18, textAlign: 'center', color: '#1976d2', fontWeight: 600}}>{note.likes || 0}</span>
+      <span className="rate-count like">{note.likes || 0}</span>
       <button
         title="No me gusta"
-        style={{
-          background: 'none',
-          border: 'none',
-          color: userRating === -1 ? '#d32f2f' : '#888',
-          fontSize: size,
-          cursor: token ? 'pointer' : 'not-allowed',
-          padding: 0
-        }}
+        className={`icon-button ${sizeClass} ${userRating === -1 ? 'disliked' : ''}`}
         disabled={!token}
         onClick={() => userRating === -1 ? onUnrate() : onDislike()}
       >
         👎
       </button>
-      <span style={{minWidth: 18, textAlign: 'center', color: '#d32f2f', fontWeight: 600}}>{note.dislikes || 0}</span>
+      <span className="rate-count dislike">{note.dislikes || 0}</span>
     </div>
   );
 }

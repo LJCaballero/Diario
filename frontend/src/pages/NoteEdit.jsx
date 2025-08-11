@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react';
-import axios from '../axiosInstance';
+import { useState, useEffect } from "react";
+import axios from "../axiosInstance";
 
 export default function NoteEdit({ setPage, token, noteId }) {
-  const [title, setTitle] = useState('');
-  const [text, setText] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [title, setTitle] = useState("");
+  const [text, setText] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [imageFile, setImageFile] = useState(null);
-  const [currentImage, setCurrentImage] = useState('');
-  const [imagePreview, setImagePreview] = useState('');
+  const [currentImage, setCurrentImage] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
 
   const isEditing = !!noteId;
 
@@ -27,13 +27,13 @@ export default function NoteEdit({ setPage, token, noteId }) {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/api/categories');
+      const res = await axios.get("http://localhost:3001/api/categories");
       setCategories(res.data);
       if (res.data.length > 0 && !categoryId) {
         setCategoryId(res.data[0].id);
       }
     } catch (err) {
-      setError('Error al cargar categorías');
+      setError("Error al cargar categorías");
     }
   };
 
@@ -41,7 +41,7 @@ export default function NoteEdit({ setPage, token, noteId }) {
     setLoading(true);
     try {
       const res = await axios.get(`http://localhost:3001/api/notes/${noteId}`, {
-        headers: { Authorization: token }
+        headers: { Authorization: token },
       });
       const note = res.data;
       setTitle(note.title);
@@ -49,9 +49,9 @@ export default function NoteEdit({ setPage, token, noteId }) {
       setCategoryId(note.category_id);
       setIsPublic(note.is_public);
       setIsAnonymous(note.is_anonymous);
-      setCurrentImage(note.image_url || '');
+      setCurrentImage(note.image_url || "");
     } catch (err) {
-      setError('Error al cargar la nota');
+      setError("Error al cargar la nota");
     }
     setLoading(false);
   };
@@ -60,60 +60,65 @@ export default function NoteEdit({ setPage, token, noteId }) {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        setError('La imagen es demasiado grande (máximo 2MB)');
+        setError("La imagen es demasiado grande (máximo 2MB)");
         return;
       }
-      if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
-        setError('Solo se permiten imágenes (jpg, png, gif, webp)');
+      if (
+        !["image/jpeg", "image/png", "image/gif", "image/webp"].includes(
+          file.type
+        )
+      ) {
+        setError("Solo se permiten imágenes (jpg, png, gif, webp)");
         return;
       }
       setImageFile(file);
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
-      setError('');
+      setError("");
     }
   };
 
   const handleRemoveCurrentImage = async () => {
-    if (!window.confirm('¿Seguro que quieres eliminar la imagen actual?')) return;
+    if (!window.confirm("¿Seguro que quieres eliminar la imagen actual?"))
+      return;
     setLoading(true);
-    setError('');
+    setError("");
     try {
       await axios.delete(`http://localhost:3001/api/notes/${noteId}/image`, {
-        headers: { Authorization: token }
+        headers: { Authorization: token },
       });
-      setCurrentImage('');
-      setSuccess('Imagen eliminada correctamente');
+      setCurrentImage("");
+      setSuccess("Imagen eliminada correctamente");
     } catch (err) {
-      setError(err?.response?.data?.error || 'Error al eliminar la imagen');
+      setError(err?.response?.data?.error || "Error al eliminar la imagen");
     }
     setLoading(false);
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (!title.trim()) {
-      setError('El título es obligatorio');
+      setError("El título es obligatorio");
       return;
     }
     if (!text.trim()) {
-      setError('El texto es obligatorio');
+      setError("El texto es obligatorio");
       return;
     }
     if (!categoryId) {
-      setError('Debes seleccionar una categoría');
+      setError("Debes seleccionar una categoría");
       return;
     }
     if (title.length > 100) {
-      setError('El título es demasiado largo (máximo 100 caracteres)');
+      setError("El título es demasiado largo (máximo 100 caracteres)");
       return;
     }
     if (text.length > 5000) {
-      setError('El texto es demasiado largo (máximo 5000 caracteres)');
+      setError("El texto es demasiado largo (máximo 5000 caracteres)");
       return;
     }
 
@@ -125,28 +130,31 @@ export default function NoteEdit({ setPage, token, noteId }) {
         text: text.trim(),
         category_id: parseInt(categoryId),
         is_public: isPublic,
-        is_anonymous: isAnonymous
+        is_anonymous: isAnonymous,
       };
 
       let savedNoteId = noteId;
 
       if (isEditing) {
         await axios.put(`http://localhost:3001/api/notes/${noteId}`, noteData, {
-          headers: { Authorization: token }
+          headers: { Authorization: token },
         });
-        setSuccess('Nota actualizada correctamente');
+        setSuccess("Nota actualizada correctamente");
       } else {
-        const res = await axios.post('http://localhost:3001/api/notes', noteData, {
-          headers: { Authorization: token }
-        });
+        const res = await axios.post(
+          "http://localhost:3001/api/notes",
+          noteData,
+          {
+            headers: { Authorization: token },
+          }
+        );
         savedNoteId = res.data.id;
-        setSuccess('Nota creada correctamente');
+        setSuccess("Nota creada correctamente");
       }
 
-      // Subir imagen si hay una nueva
       if (imageFile && savedNoteId) {
         const formData = new FormData();
-        formData.append('image', imageFile);
+        formData.append("image", imageFile);
         try {
           const imgRes = await axios.post(
             `http://localhost:3001/api/notes/${savedNoteId}/image`,
@@ -154,45 +162,47 @@ export default function NoteEdit({ setPage, token, noteId }) {
             {
               headers: {
                 Authorization: token,
-                'Content-Type': 'multipart/form-data'
-              }
+                "Content-Type": "multipart/form-data",
+              },
             }
           );
           setCurrentImage(imgRes.data.imageUrl);
           setImageFile(null);
-          setImagePreview('');
+          setImagePreview("");
         } catch (imgErr) {
-          setError(imgErr?.response?.data?.error || 'Error al subir la imagen');
+          setError(imgErr?.response?.data?.error || "Error al subir la imagen");
         }
       }
 
-      // Redirigir después de un breve delay
       setTimeout(() => {
-        setPage('notes');
+        setPage("list");
       }, 1500);
-
     } catch (err) {
-      setError(err?.response?.data?.error || 'Error al guardar la nota');
+      setError(err?.response?.data?.error || "Error al guardar la nota");
     }
     setLoading(false);
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta nota? Esta acción no se puede deshacer.')) {
+    if (
+      !window.confirm(
+        "¿Estás seguro de que quieres eliminar esta nota? Esta acción no se puede deshacer."
+      )
+    ) {
       return;
     }
     setLoading(true);
-    setError('');
+    setError("");
     try {
       await axios.delete(`http://localhost:3001/api/notes/${noteId}`, {
-        headers: { Authorization: token }
+        headers: { Authorization: token },
       });
-      setSuccess('Nota eliminada correctamente');
+      setSuccess("Nota eliminada correctamente");
       setTimeout(() => {
-        setPage('notes');
+        setPage("list");
       }, 1000);
     } catch (err) {
-      setError(err?.response?.data?.error || 'Error al eliminar la nota');
+      setError(err?.response?.data?.error || "Error al eliminar la nota");
     }
     setLoading(false);
   };
@@ -204,8 +214,10 @@ export default function NoteEdit({ setPage, token, noteId }) {
   return (
     <div className="container">
       <div className="top-bar">
-        <h2>{isEditing ? '✏️ Editar Nota' : '📝 Nueva Nota'}</h2>
-        <button className="secondary" onClick={() => setPage('notes')}>⬅️ Volver a mis notas</button>
+        <h2>{isEditing ? "✏️ Editar Nota" : "📝 Nueva Nota"}</h2>
+        <button className="secondary" onClick={() => setPage("list")}>
+          ⬅️ Volver a mis notas
+        </button>
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -217,7 +229,7 @@ export default function NoteEdit({ setPage, token, noteId }) {
           <input
             type="text"
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={(e) => setTitle(e.target.value)}
             placeholder="Título de la nota"
             maxLength={100}
             disabled={loading}
@@ -230,13 +242,15 @@ export default function NoteEdit({ setPage, token, noteId }) {
           <label>Categoría *</label>
           <select
             value={categoryId}
-            onChange={e => setCategoryId(e.target.value)}
+            onChange={(e) => setCategoryId(e.target.value)}
             disabled={loading}
             required
           >
             <option value="">Selecciona una categoría</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
         </div>
@@ -245,7 +259,7 @@ export default function NoteEdit({ setPage, token, noteId }) {
           <label>Texto *</label>
           <textarea
             value={text}
-            onChange={e => setText(e.target.value)}
+            onChange={(e) => setText(e.target.value)}
             placeholder="Contenido de la nota"
             rows={10}
             maxLength={5000}
@@ -260,7 +274,7 @@ export default function NoteEdit({ setPage, token, noteId }) {
             <input
               type="checkbox"
               checked={isPublic}
-              onChange={e => setIsPublic(e.target.checked)}
+              onChange={(e) => setIsPublic(e.target.checked)}
               disabled={loading}
             />
             Hacer pública (visible para todos)
@@ -273,7 +287,7 @@ export default function NoteEdit({ setPage, token, noteId }) {
               <input
                 type="checkbox"
                 checked={isAnonymous}
-                onChange={e => setIsAnonymous(e.target.checked)}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
                 disabled={loading}
               />
               Publicar de forma anónima
@@ -284,17 +298,17 @@ export default function NoteEdit({ setPage, token, noteId }) {
         <div>
           <label>Imagen (opcional)</label>
           {currentImage && (
-            <div style={{marginBottom: '1em'}}>
+            <div className="mb-1">
               <p>Imagen actual:</p>
-              <img 
-                src={`http://localhost:3001${currentImage}`} 
-                alt="Imagen actual" 
-                style={{maxWidth: '200px', borderRadius: '8px', marginBottom: '0.5em'}}
+              <img
+                src={`http://localhost:3001${currentImage}`}
+                alt="Imagen actual"
+                className="img-small"
               />
               <br />
-              <button 
-                type="button" 
-                className="secondary" 
+              <button
+                type="button"
+                className="secondary"
                 onClick={handleRemoveCurrentImage}
                 disabled={loading}
               >
@@ -309,27 +323,41 @@ export default function NoteEdit({ setPage, token, noteId }) {
             disabled={loading}
           />
           {imagePreview && (
-            <div style={{marginTop: '0.5em'}}>
+            <div className="mt-0-5">
               <p>Vista previa de la nueva imagen:</p>
-              <img 
-                src={imagePreview} 
-                alt="Vista previa" 
-                style={{maxWidth: '200px', borderRadius: '8px'}}
+              <img
+                src={imagePreview}
+                alt="Vista previa"
+                className="img-small"
               />
             </div>
           )}
           <small>Máximo 2MB. Formatos: jpg, png, gif, webp</small>
         </div>
 
-        <div style={{display: 'flex', gap: '1em', marginTop: '1.5em'}}>
+        <div className="toolbar mt-1-5">
           <button type="submit" disabled={loading}>
-            {loading ? 'Guardando...' : (isEditing ? 'Actualizar Nota' : 'Crear Nota')}
+            {loading
+              ? "Guardando..."
+              : isEditing
+              ? "Actualizar Nota"
+              : "Crear Nota"}
           </button>
-          <button type="button" className="secondary" onClick={() => setPage('notes')} disabled={loading}>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setPage("list")}
+            disabled={loading}
+          >
             Cancelar
           </button>
           {isEditing && (
-            <button type="button" className="danger" onClick={handleDelete} disabled={loading}>
+            <button
+              type="button"
+              className="danger"
+              onClick={handleDelete}
+              disabled={loading}
+            >
               🗑️ Eliminar Nota
             </button>
           )}

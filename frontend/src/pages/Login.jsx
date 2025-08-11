@@ -14,7 +14,7 @@ export default function Login({ setPage, setToken }) {
     try {
       const res = await axios.post('http://localhost:3001/api/login', { email, password });
       setToken(res.data.token);
-      setPage('list'); // <-- Cambia a la página principal de notas
+      setPage('list');
     } catch (err) {
       setError(err?.response?.data?.error || 'Error al iniciar sesión');
     }
@@ -60,16 +60,15 @@ export default function Login({ setPage, setToken }) {
             autoComplete="current-password"
           />
         </div>
-        <div style={{marginTop: '1.5em', display: 'flex', gap: '1em'}}>
-          <button type="submit" disabled={loading} style={{flex: 1}}>
+        <div className="toolbar mt-1-5">
+          <button type="submit" disabled={loading} className="grow">
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
           <button
             type="button"
-            className="secondary"
+            className="secondary grow"
             onClick={() => setPage('register')}
             disabled={loading}
-            style={{flex: 1}}
           >
             Registrarse
           </button>

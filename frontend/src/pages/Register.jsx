@@ -96,16 +96,15 @@ export default function Register({ setPage, setToken }) {
             </label>
           </div>
         )}
-        <div style={{marginTop: '1.5em', display: 'flex', gap: '1em'}}>
-          <button type="submit" disabled={loading} style={{flex: 1}}>
+        <div className="toolbar mt-1-5">
+          <button type="submit" disabled={loading} className="grow">
             {loading ? 'Registrando...' : 'Registrarse'}
           </button>
           <button
             type="button"
-            className="secondary"
+            className="secondary grow"
             onClick={() => setPage('login')}
             disabled={loading}
-            style={{flex: 1}}
           >
             Ya tengo cuenta
           </button>

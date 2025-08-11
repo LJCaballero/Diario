@@ -105,13 +105,13 @@ export default function CategoriesManager({ setPage, token }) {
     <div className="container">
       <div className="top-bar">
         <h2>🏷️ Categorías</h2>
-        <button className="secondary" onClick={() => setPage('notes')}>⬅️ Volver a mis notas</button>
+        <button className="secondary" onClick={() => setPage('list')}>⬅️ Volver a mis notas</button>
       </div>
 
       {error && <div className="error">{error}</div>}
       {success && <div className="success">{success}</div>}
 
-      <form onSubmit={handleAdd} style={{marginBottom: '1.5em', display: 'flex', gap: '1em'}}>
+      <form onSubmit={handleAdd}>
         <input
           type="text"
           placeholder="Nueva categoría"
@@ -125,13 +125,7 @@ export default function CategoriesManager({ setPage, token }) {
 
       <ul>
         {categories.map(cat => (
-          <li key={cat.id} style={{
-            borderBottom: '1px solid #eee',
-            padding: '0.7em 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1em'
-          }}>
+          <li key={cat.id}>
             {editingId === cat.id ? (
               <>
                 <input
@@ -140,7 +134,6 @@ export default function CategoriesManager({ setPage, token }) {
                   onChange={e => setEditingName(e.target.value)}
                   maxLength={50}
                   disabled={loading}
-                  style={{flex: 1}}
                 />
                 <button
                   onClick={() => handleEditSave(cat.id)}
@@ -157,7 +150,7 @@ export default function CategoriesManager({ setPage, token }) {
               </>
             ) : (
               <>
-                <span style={{flex: 1}}>{cat.name}</span>
+                <span>{cat.name}</span>
                 <button
                   className="secondary"
                   onClick={() => handleEdit(cat)}

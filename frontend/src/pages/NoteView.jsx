@@ -26,7 +26,7 @@ export default function NoteView({ token, noteId, setPage, setNoteId }) {
         <h2>📄 {note.title}</h2>
         <button className="secondary" onClick={() => setPage('list')}>⬅️ Volver</button>
         <button className="secondary" onClick={() => { setNoteId(note.id); setPage('edit'); }}>✏️ Editar</button>
-        <button className="secondary" style={{color: 'red'}} onClick={handleDelete}>🗑️ Eliminar</button>
+        <button className="secondary danger-text" onClick={handleDelete}>🗑️ Eliminar</button>
       </div>
       <div>
         <p><strong>Categoría:</strong> {note.category_name}</p>
@@ -36,12 +36,12 @@ export default function NoteView({ token, noteId, setPage, setNoteId }) {
           <p><strong>¿Anónima?:</strong> {note.is_anonymous ? 'Sí (aparecerá como Anónimo en el muro público)' : 'No'}</p>
         )}
         {note.image_url && (
-          <div style={{margin: '1em 0'}}>
-            <img src={`http://localhost:3001${note.image_url}`} alt="Nota" style={{maxWidth: '100%', borderRadius: '8px'}} />
+          <div className="my-1">
+            <img src={`http://localhost:3001${note.image_url}`} alt="Nota" />
           </div>
         )}
         <hr />
-        <div style={{whiteSpace: 'pre-wrap'}}>{note.text}</div>
+        <div className="content-prewrap">{note.text}</div>
       </div>
     </div>
   );
